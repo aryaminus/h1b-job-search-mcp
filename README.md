@@ -2,7 +2,7 @@
 
 An MCP (Model Context Protocol) server that automates H-1B job searching using U.S. Department of Labor LCA disclosure data. Built with [FastMCP](https://github.com/jlowin/fastmcp).
 
-🚀 **Live Server**: https://fastmcp-server-25x4.onrender.com/mcp
+🚀 **Live Server**: https://h1b-job-search-mcp.onrender.com/mcp
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aryaminus/h1b-job-search-mcp)
 
@@ -152,7 +152,7 @@ Click the "Deploy to Render" button above.
 
 Your server will be available at `https://your-service-name.onrender.com/mcp`
 
-Current deployment: `https://fastmcp-server-25x4.onrender.com/mcp`
+Current deployment: `https://h1b-job-search-mcp.onrender.com/mcp`
 
 ## Multi-LLM Support
 

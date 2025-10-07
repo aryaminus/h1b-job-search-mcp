@@ -3,7 +3,7 @@
     {
       "name": "h1b-search",
       "type": "http",
-      "url": "https://fastmcp-server-25x4.onrender.com",
+      "url": "https://h1b-job-search-mcp.onrender.com",
       "auth": {
         "type": "none"
       },
