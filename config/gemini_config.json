@@ -1,7 +1,7 @@
 {
   "api_key": "YOUR_GEMINI_API_KEY",
   "model": "gemini-pro",
-  "server_url": "http://localhost:8000",
+  "server_url": "https://fastmcp-server-25x4.onrender.com",
   "functions": [
     {
       "name": "load_h1b_data",

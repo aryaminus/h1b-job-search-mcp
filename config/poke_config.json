@@ -3,7 +3,7 @@
     {
       "name": "h1b-search",
       "type": "http",
-      "url": "http://localhost:8000",
+      "url": "https://fastmcp-server-25x4.onrender.com",
       "auth": {
         "type": "none"
       },
