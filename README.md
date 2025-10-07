@@ -2,7 +2,7 @@
 
 An MCP (Model Context Protocol) server that automates H-1B job searching using U.S. Department of Labor LCA disclosure data. Built with [FastMCP](https://github.com/jlowin/fastmcp).
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/InteractionCo/mcp-server-template)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aryaminus/h1b-job-search-mcp)
 
 ## Features
 
