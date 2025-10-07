@@ -1,10 +1,20 @@
 # H1B Job Search MCP Server
 
-An MCP (Model Context Protocol) server that automates H-1B job searching using U.S. Department of Labor LCA disclosure data. Built with [FastMCP](https://github.com/jlowin/fastmcp).
+An MCP (Model Context Protocol) server that automates H-1B job searching using **REAL** U.S. Department of Labor LCA disclosure data. Built with [FastMCP](https://github.com/jlowin/fastmcp).
 
 🚀 **Live Server**: https://h1b-job-search-mcp.onrender.com/mcp
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aryaminus/h1b-job-search-mcp)
+
+## ✅ Real Data, Not Samples!
+
+This server fetches **actual H-1B application data** directly from the U.S. Department of Labor's official disclosure files. Each dataset contains tens of thousands of real H-1B applications with:
+- Real company names (Google, Microsoft, Amazon, etc.)
+- Actual job titles and salaries
+- Real work locations and contact information
+- Certified application statuses
+
+**Data Source**: https://www.dol.gov/agencies/eta/foreign-labor/performance
 
 ## Features
 

@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 import requests
+import subprocess
 from io import StringIO
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -18,49 +19,182 @@ class H1BDataManager:
         self.last_loaded = None
         self.current_file = None
         
-    def get_data_url(self, year: int, quarter: int) -> str:
-        """Generate URL for LCA data download"""
-        return f"https://www.flcdatacenter.com/download/LCA_{year}Q{quarter}.xlsx"
+    def get_dol_urls(self, year: int, quarter: int) -> list:
+        """Generate DOL URLs based on actual file naming patterns from the DOL website"""
+        urls = []
+        
+        # Base URL for DOL OFLC PDFs directory
+        base_dol = "https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs"
+        
+        # Based on the actual DOL page, the naming patterns are:
+        # For 2024: LCA_Disclosure_Data_FY2024_Q1.xlsx, Q2, Q3, Q4
+        # For 2023 and earlier: Similar patterns
+        # For older years (pre-2020): H-1B FY2019.xlsx or H1B FY2017.xlsx
+        
+        if year >= 2020:
+            # Modern naming convention (2020+)
+            urls.append(f"{base_dol}/LCA_Disclosure_Data_FY{year}_Q{quarter}.xlsx")
+            
+            # Some years use different patterns for different quarters
+            if year == 2020:
+                # 2020 uses a different pattern
+                urls.append(f"{base_dol}/LCA_FY{year}_Q{quarter}.xlsx")
+            
+        else:
+            # Older naming conventions (pre-2020)
+            if quarter == 4 or quarter == 1:  # Often only annual files for older years
+                urls.extend([
+                    f"{base_dol}/H-1B_FY{year}.xlsx",
+                    f"{base_dol}/H-1B FY{year}.xlsx",  # With space
+                    f"{base_dol}/H1B_FY{year}.xlsx",
+                    f"{base_dol}/H1B FY{year}.xlsx",   # With space
+                    f"{base_dol}/LCA_FY{year}.xlsx",
+                    f"{base_dol}/LCA FY{year}.xlsx",   # With space
+                ])
+        
+        # For the latest data (FY2025 Q3 as shown on the page)
+        if year == 2025:
+            urls.insert(0, f"{base_dol}/LCA_Disclosure_Data_FY2025_Q3.xlsx")
+        
+        # Fallback: Try the flcdatacenter.com when it's back online
+        # (currently down due to funding lapse)
+        urls.append(f"https://www.flcdatacenter.com/download/LCA_{year}Q{quarter}.xlsx")
+        
+        return urls
     
     def load_data(self, year: int = 2024, quarter: int = 4, force_download: bool = False) -> bool:
         """Load LCA data from cache or download if needed"""
         cache_file = os.path.join(DATA_CACHE_DIR, f"LCA_{year}Q{quarter}.pkl")
         
+        # Try loading from cache first
         if not force_download and os.path.exists(cache_file):
             try:
                 self.df = pd.read_pickle(cache_file)
                 self.current_file = cache_file
                 self.last_loaded = datetime.now()
+                print(f"Loaded cached data from {cache_file}")
                 return True
             except Exception as e:
                 print(f"Error loading cached data: {e}")
         
-        try:
-            url = self.get_data_url(year, quarter)
-            print(f"Downloading LCA data for {year} Q{quarter}...")
-            
-            response = requests.get(url, stream=True, timeout=60)
-            response.raise_for_status()
-            
-            excel_file = os.path.join(DATA_CACHE_DIR, f"LCA_{year}Q{quarter}.xlsx")
-            with open(excel_file, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            
-            self.df = pd.read_excel(excel_file, nrows=100000)
-            
-            self.df.to_pickle(cache_file)
-            self.current_file = cache_file
-            self.last_loaded = datetime.now()
-            
-            if os.path.exists(excel_file):
-                os.remove(excel_file)
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error downloading/loading data: {e}")
-            return False
+        # Try downloading from multiple possible URLs
+        urls = self.get_dol_urls(year, quarter)
+        excel_file = os.path.join(DATA_CACHE_DIR, f"LCA_{year}Q{quarter}.xlsx")
+        
+        for url in urls:
+            try:
+                print(f"Attempting to download LCA data from: {url}")
+                
+                # First try with curl for DOL URLs (more reliable for government sites)
+                if "dol.gov" in url:
+                    try:
+                        print(f"  Using curl to download from DOL...")
+                        # Use curl which handles DOL's security better
+                        curl_cmd = [
+                            'curl', '-s', '-L', '-o', excel_file,
+                            '--max-time', '300',
+                            url
+                        ]
+                        result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=310)
+                        
+                        # Check if file was downloaded successfully
+                        if os.path.exists(excel_file):
+                            file_size = os.path.getsize(excel_file)
+                            if file_size > 10000:  # At least 10KB
+                                print(f"Successfully downloaded {file_size / 1024 / 1024:.1f} MB from {url}")
+                            else:
+                                print(f"Downloaded file too small ({file_size} bytes)")
+                                os.remove(excel_file)
+                                continue
+                        else:
+                            print(f"Curl download failed - no file created")
+                            continue
+                            
+                    except Exception as e:
+                        print(f"Curl failed: {e}, trying requests library...")
+                        if os.path.exists(excel_file):
+                            os.remove(excel_file)
+                        # Fall through to try with requests
+                        
+                # Try with requests library as fallback or for non-DOL URLs  
+                if not os.path.exists(excel_file):
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*',
+                    }
+                    
+                    response = requests.get(url, stream=True, timeout=120, headers=headers)
+                    response.raise_for_status()
+                    
+                    # Check if we got an HTML error page
+                    content_type = response.headers.get('content-type', '')
+                    if 'text/html' in content_type.lower():
+                        print(f"Received HTML instead of Excel from {url}, skipping...")
+                        continue
+                    
+                    # Save the file
+                    with open(excel_file, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=65536):
+                            if chunk:
+                                f.write(chunk)
+                    
+                    print(f"Successfully downloaded from {url}")
+                
+                # Verify file exists and has content
+                if not os.path.exists(excel_file):
+                    print(f"Error: Downloaded file not found at {excel_file}")
+                    continue
+                    
+                file_size = os.path.getsize(excel_file)
+                print(f"Downloaded file size: {file_size / 1024 / 1024:.1f} MB")
+                
+                if file_size < 1000:
+                    print(f"Error: File too small ({file_size} bytes), likely not valid")
+                    os.remove(excel_file)
+                    continue
+                
+                # Read the Excel file (limit rows for performance)
+                print(f"Reading Excel file with pandas...")
+                try:
+                    # Use openpyxl engine for .xlsx files
+                    self.df = pd.read_excel(excel_file, engine='openpyxl', nrows=100000)
+                except Exception as read_error:
+                    print(f"Failed to read Excel with openpyxl: {read_error}")
+                    # Try without specifying engine as fallback
+                    try:
+                        self.df = pd.read_excel(excel_file, nrows=100000)
+                    except Exception as fallback_error:
+                        print(f"Failed to read Excel file: {fallback_error}")
+                        os.remove(excel_file)
+                        continue
+                
+                # Cache the processed data
+                self.df.to_pickle(cache_file)
+                self.current_file = cache_file
+                self.last_loaded = datetime.now()
+                
+                # Clean up Excel file to save space
+                if os.path.exists(excel_file):
+                    os.remove(excel_file)
+                
+                print(f"Data loaded successfully: {len(self.df)} records")
+                return True
+                
+            except requests.exceptions.RequestException as e:
+                print(f"Failed to download from {url}: {e}")
+                continue
+            except Exception as e:
+                print(f"Error processing data from {url}: {e}")
+                # Clean up partial download if exists
+                if os.path.exists(excel_file):
+                    os.remove(excel_file)
+                continue
+        
+        # If all URLs failed, return error
+        print(f"ERROR: Could not download LCA data for {year} Q{quarter} from any source")
+        print("The DOL website may be under maintenance or the data format may have changed.")
+        print("Please check https://www.dol.gov/agencies/eta/foreign-labor/performance for updates.")
+        return False
     
     def is_loaded(self) -> bool:
         return self.df is not None
