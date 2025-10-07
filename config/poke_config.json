@@ -1,0 +1,136 @@
+{
+  "servers": [
+    {
+      "name": "h1b-search",
+      "type": "http",
+      "url": "http://localhost:8000",
+      "auth": {
+        "type": "none"
+      },
+      "description": "H-1B Job Search MCP Server - Search and analyze H-1B sponsorship data",
+      "capabilities": {
+        "tools": true,
+        "resources": false,
+        "prompts": false
+      },
+      "tools": [
+        {
+          "name": "load_h1b_data",
+          "description": "Download and load H-1B LCA disclosure data from the U.S. Department of Labor",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "integer",
+                "default": 2024
+              },
+              "quarter": {
+                "type": "integer",
+                "default": 4
+              },
+              "force_download": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        {
+          "name": "search_h1b_jobs",
+          "description": "Search for H-1B sponsoring companies by job role and location",
+          "inputSchema": {
+            "type": "object",
+            "required": ["job_role"],
+            "properties": {
+              "job_role": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "min_wage": {
+                "type": "number"
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 50
+              },
+              "skip_agencies": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        {
+          "name": "get_company_stats",
+          "description": "Get detailed H-1B sponsorship statistics for a specific company",
+          "inputSchema": {
+            "type": "object",
+            "required": ["company_name"],
+            "properties": {
+              "company_name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "get_top_sponsors",
+          "description": "List top H-1B sponsoring companies by application volume",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20
+              },
+              "exclude_agencies": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        {
+          "name": "export_results",
+          "description": "Export filtered H-1B results to a CSV file",
+          "inputSchema": {
+            "type": "object",
+            "required": ["job_role"],
+            "properties": {
+              "job_role": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "filename": {
+                "type": "string",
+                "default": "h1b_results.csv"
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 1000
+              }
+            }
+          }
+        },
+        {
+          "name": "get_available_data",
+          "description": "List available LCA data periods and cached files",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "h1b-search": {
+      "command": "python",
+      "args": ["${HOME}/path/to/mcp-server-template/src/server.py"],
+      "env": {
+        "PYTHONPATH": "${HOME}/path/to/mcp-server-template"
+      }
+    }
+  }
+}

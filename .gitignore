@@ -214,3 +214,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# H1B MCP Server data cache
+data_cache/
+*.pkl
+*.xlsx
+*.csv

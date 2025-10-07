@@ -1,0 +1,42 @@
+{
+  "mcp": {
+    "servers": {
+      "h1b-search": {
+        "command": "python",
+        "args": ["src/server.py"],
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}"
+        },
+        "transport": "stdio",
+        "description": "H-1B Job Search MCP Server",
+        "tools": [
+          {
+            "name": "load_h1b_data",
+            "description": "Download and load H-1B LCA disclosure data"
+          },
+          {
+            "name": "search_h1b_jobs",
+            "description": "Search for H-1B sponsoring companies"
+          },
+          {
+            "name": "get_company_stats",
+            "description": "Get company H-1B sponsorship statistics"
+          },
+          {
+            "name": "get_top_sponsors",
+            "description": "List top H-1B sponsors by volume"
+          },
+          {
+            "name": "export_results",
+            "description": "Export search results to CSV"
+          },
+          {
+            "name": "get_available_data",
+            "description": "Check available data periods"
+          }
+        ]
+      }
+    }
+  }
+}
