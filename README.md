@@ -6,6 +6,8 @@ An MCP (Model Context Protocol) server that automates H-1B job searching using *
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aryaminus/h1b-job-search-mcp)
 
+Note: Due to limitation of memory on the free instance, the server tends to go down. I'm happy to accept server donations for hosting.
+
 ## ✅ Real Data, Not Samples!
 
 This server fetches **actual H-1B application data** directly from the U.S. Department of Labor's official disclosure files. Each dataset contains tens of thousands of real H-1B applications with:
